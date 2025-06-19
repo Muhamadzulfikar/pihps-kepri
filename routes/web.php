@@ -15,6 +15,9 @@ Route::group([
     ),
     'namespace' => 'App\Http\Controllers\Admin',
 ], function () { // custom admin routes
+    Route::crud('commodity-categories', \App\Http\Controllers\Admin\CommodityCategoryCrudController::class);
+    Route::crud('cities', \App\Http\Controllers\Admin\CityCrudController::class);
+    Route::crud('city-markets', \App\Http\Controllers\Admin\CityMarketCrudController::class);
     Route::crud('commodities/{market_type}', CommodityCrudController::class);
     Route::crud('commodities/{market_type}/{commodity_uuid}/markets', MarketCrudController::class);
 });
