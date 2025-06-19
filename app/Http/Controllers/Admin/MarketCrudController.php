@@ -6,6 +6,7 @@ use App\Enums\CityEnum;
 use App\Enums\InflationStatusEnum;
 use App\Enums\MarketEnum;
 use App\Http\Requests\MarketRequest;
+use App\Models\City;
 use App\Models\CityMarket;
 use App\Models\Commodity;
 use App\Models\InflationHistory;
@@ -150,9 +151,9 @@ class MarketCrudController extends CrudController
 
             if ($count === 1) {
                 InflationHistory::where('commodity_uuid', $commodityUuid)->where('start_date', $date)->delete();
-            } else {
-                $this->countInflation($commodityUuid);
             }
+
+            $this->countInflation($commodityUuid);
         } catch (Exception $exception) {
              return response()->json([
                  'message' => $exception->getMessage(),
@@ -169,14 +170,16 @@ class MarketCrudController extends CrudController
     private function countInflation(string $commodityUuid): void
     {
         $markets = Market::where('commodity_uuid', $commodityUuid)->get();
+        $cities = City::select('id')->get();
+        $cityMarkets = CityMarket::select('id', 'city_id')->get();
 
         $fiveLatestDates = $markets->sortBydesc('start_date')->unique('start_date')->take(5)->pluck('start_date')->sort()->values();
 
         foreach ($fiveLatestDates as $index => $fiveLatestDate) {
             $averageAllToday = collect();
 
-            foreach (CityMarket::all() as $cityMarket) {
-                $marketCity = $markets->where('city_market_id', $cityMarket->id)->where('start_date', $fiveLatestDate);
+            foreach ($cities as $city) {
+                $marketCity = $markets->whereIn('city_market_id', $cityMarkets->where('city_id', $city->id)->pluck('id')->all())->where('start_date', $fiveLatestDate);
                 $averageToday = $marketCity->average('price');
 
                 $averageAllToday->push(['averageByCity' => $averageToday]);
