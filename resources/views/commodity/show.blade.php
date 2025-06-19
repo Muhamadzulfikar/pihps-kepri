@@ -52,14 +52,14 @@
                                     <tbody>
                                     <tr>
                                         <td><b>Nama</b></td>
-                                        <td>{{ $entry->name_text }}</td>
+                                        <td>{{ $entry->name }}</td>
 
                                         <td><b>Kategori</b></td>
-                                        <td>{{ $entry->category->readableText() }}</td>
+                                        <td>{{ $entry->category }}</td>
                                     </tr>
                                     <tr>
                                         <td><b>Jenis Pasar</b></td>
-                                        <td>{{ $entry->market_type->readableText() }}</td>
+                                        <td>{{ $entry->market_text }}</td>
                                     </tr>
                                     </tbody>
                                 </table>

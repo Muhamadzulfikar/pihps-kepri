@@ -7,7 +7,6 @@
             <th>Tanggal</th>
             <th>Nama</th>
             <th>Harga</th>
-            <th>Kota / Kabupaten</th>
             <th>Aksi</th>
         </tr>
         </thead>
@@ -16,9 +15,8 @@
             <tr>
                 <td>{{ $loop->iteration }}</td>
                 <td>{{ $market->format_date }}</td>
-                <td>{{ $market->name->readableText() }}</td>
-                 <td>Rp. {{ number_format($market->price) }}</td>
-                <td>{{ $market->city->readableText() }}</td>
+                <td>{{ $market->cityMarket->city_market }}</td>
+                <td>Rp. {{ number_format($market->price) }}</td>
                 <td>
                     <div class="d-flex justify-content-center">
                         <a href="{{ url($crud->route.'/'.$entry->uuid.'/markets/'.$market->id.'/edit') }}"

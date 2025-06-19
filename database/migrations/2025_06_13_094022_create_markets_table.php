@@ -14,8 +14,7 @@ return new class extends Migration
         Schema::create('markets', function (Blueprint $table) {
             $table->id();
             $table->foreignUuid('commodity_uuid')->references('uuid')->on('commodities')->cascadeOnDelete();
-            $table->string('name');
-            $table->string('city');
+            $table->foreignId('city_market_id')->references('id')->on('city_markets')->cascadeOnDelete();
             $table->double('price');
             $table->date('start_date');
             $table->timestamps();

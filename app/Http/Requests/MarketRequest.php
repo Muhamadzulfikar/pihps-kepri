@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\CityEnum;
 use App\Enums\MarketEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class MarketRequest extends FormRequest
 {
@@ -28,8 +29,14 @@ class MarketRequest extends FormRequest
     {
         return [
             'commodity_uuid' => 'required|exists:commodities,uuid',
-            'name' => 'required|string|in:'.implode(',', MarketEnum::toValues()),
-            'city' => 'required|string|in:'.implode(',', CityEnum::toValues()),
+            'city_market_id' => [
+                'required',
+                'exists:city_markets,id',
+                Rule::unique('markets')
+                    ->where('city_market_id', request()->city_market_id)
+                    ->where('start_date', request()->start_date)
+                    ->ignore(request()->id, 'id'),
+            ],
             'price' => 'required|numeric',
             'start_date' => 'required|date',
         ];

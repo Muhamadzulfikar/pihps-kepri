@@ -18,20 +18,22 @@ class Market extends Model
     protected $primaryKey = 'id';
     protected $fillable = [
         'commodity_uuid',
-        'name',
-        'city',
+        'city_market_id',
         'price',
         'start_date',
     ];
     protected $casts = [
-        'name' => MarketEnum::class,
-        'city' => CityEnum::class,
         'start_date' => 'date',
     ];
 
     public function commodity(): BelongsTo
     {
         return $this->belongsTo(Commodity::class, 'commodity_uuid', 'uuid');
+    }
+
+    public function cityMarket(): BelongsTo
+    {
+        return $this->belongsTo(CityMarket::class, 'city_market_id', 'id');
     }
 
     public function getFormatDateAttribute(): string

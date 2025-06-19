@@ -6,6 +6,7 @@ use App\Enums\CityEnum;
 use App\Enums\InflationStatusEnum;
 use App\Enums\MarketEnum;
 use App\Http\Requests\MarketRequest;
+use App\Models\CityMarket;
 use App\Models\Commodity;
 use App\Models\InflationHistory;
 use App\Models\Market;
@@ -30,7 +31,9 @@ class MarketCrudController extends CrudController
     use UpdateOperation {
         update as traitUpdate;
     }
-    use DeleteOperation;
+    use DeleteOperation {
+        destroy as traitDestroy;
+    }
 
     protected Commodity $commodity;
     protected string $marketType;
@@ -62,20 +65,14 @@ class MarketCrudController extends CrudController
                 'label' => 'Komoditas',
                 'name' => 'commodity_name',
                 'type' => 'text',
-                'value' => $this->commodity->name->readableText(),
+                'value' => $this->commodity->name,
                 'attributes' => ['readonly' => 'readonly'],
             ],
             [
-                'label' => 'Nama',
-                'name' => 'name',
-                'type' => 'enum',
-                'options' => MarketEnum::toArrayWithReadableText(),
-            ],
-            [
-                'label' => 'Kota / Kabupaten',
-                'name' => 'city',
-                'type' => 'enum',
-                'options' => CityEnum::toArrayWithReadableText(),
+                'label' => 'Pasar',
+                'name' => 'city_market_id',
+                'type' => 'select_from_array',
+                'options' => CityMarket::with('city')->get()->pluck('city_market', 'id')->toArray(),
             ],
             [
                 'label' => 'Harga',
@@ -108,7 +105,7 @@ class MarketCrudController extends CrudController
 
         try {
             $response = $this->traitStore();
-            $this->countInflation($this->crud->entry);
+            $this->countInflation($this->commodity->uuid);
 
         } catch (Exception $exception) {
             Alert::error($exception->getMessage())->flash();
@@ -128,7 +125,7 @@ class MarketCrudController extends CrudController
 
         try {
             $response = $this->traitUpdate();
-            $this->countInflation($this->crud->entry);
+            $this->countInflation($this->commodity->uuid);
 
         } catch (Exception $exception) {
             Alert::error($exception->getMessage())->flash();
@@ -140,17 +137,46 @@ class MarketCrudController extends CrudController
         return $response;
     }
 
-    private function countInflation(Market $market): void
+    public function destroy($marketType, $commodityUuid, $id): JsonResponse
     {
-        $markets = Market::where('commodity_uuid', $market->commodity_uuid)->get();
+        $market = Market::find($id);
+        $date = $market->start_date;
+        $count = Market::where('start_date', $date)->count();
+
+        DB::beginTransaction();
+
+        try {
+            $market->delete();
+
+            if ($count === 1) {
+                InflationHistory::where('commodity_uuid', $commodityUuid)->where('start_date', $date)->delete();
+            } else {
+                $this->countInflation($commodityUuid);
+            }
+        } catch (Exception $exception) {
+             return response()->json([
+                 'message' => $exception->getMessage(),
+             ], 500);
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Successfully Delete',
+        ]);
+    }
+
+    private function countInflation(string $commodityUuid): void
+    {
+        $markets = Market::where('commodity_uuid', $commodityUuid)->get();
 
         $fiveLatestDates = $markets->sortBydesc('start_date')->unique('start_date')->take(5)->pluck('start_date')->sort()->values();
 
         foreach ($fiveLatestDates as $index => $fiveLatestDate) {
             $averageAllToday = collect();
 
-            foreach (CityEnum::cases() as $cityEnum) {
-                $marketCity = $markets->where('city', $cityEnum)->where('start_date', $fiveLatestDate);
+            foreach (CityMarket::all() as $cityMarket) {
+                $marketCity = $markets->where('city_market_id', $cityMarket->id)->where('start_date', $fiveLatestDate);
                 $averageToday = $marketCity->average('price');
 
                 $averageAllToday->push(['averageByCity' => $averageToday]);
@@ -163,7 +189,7 @@ class MarketCrudController extends CrudController
 
             if (isset($fiveLatestDates[$index - 1])) {
                 $yesterday = $fiveLatestDates[$index - 1];
-                $averageYesterday = InflationHistory::where('commodity_uuid', $market->commodity_uuid)
+                $averageYesterday = InflationHistory::where('commodity_uuid', $commodityUuid)
                     ->where('start_date', $yesterday)
                     ->value('average');
 
@@ -182,11 +208,11 @@ class MarketCrudController extends CrudController
 
             InflationHistory::updateOrCreate(
                 [
-                    'commodity_uuid' => $market->commodity_uuid,
+                    'commodity_uuid' => $commodityUuid,
                     'start_date' => $fiveLatestDate,
                 ],
                 [
-                    'commodity_uuid' => $market->commodity_uuid,
+                    'commodity_uuid' => $commodityUuid,
                     'average' => $averageAllToday,
                     'inflation' => $inflation,
                     'percentage' => $percentage,

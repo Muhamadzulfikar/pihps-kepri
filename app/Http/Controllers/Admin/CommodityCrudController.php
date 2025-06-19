@@ -94,6 +94,7 @@ class CommodityCrudController extends CrudController
     {
         $this->crud->setShowView('commodity.show');
         $content = $this->traitShow($id);
+        $content->entry->load('markets.cityMarket.city');
 
         return $content;
     }

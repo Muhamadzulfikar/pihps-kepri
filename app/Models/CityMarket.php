@@ -6,17 +6,12 @@ use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CityMarket extends Model
 {
     use CrudTrait;
     use HasFactory;
-
-    /*
-    |--------------------------------------------------------------------------
-    | GLOBAL VARIABLES
-    |--------------------------------------------------------------------------
-    */
 
     protected $table = 'city_markets';
     protected $primaryKey = 'id';
@@ -25,31 +20,18 @@ class CityMarket extends Model
         'name'
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | RELATIONS
-    |--------------------------------------------------------------------------
-    */
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class, 'city_id', 'id');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | SCOPES
-    |--------------------------------------------------------------------------
-    */
+    public function markets(): HasMany
+    {
+        return $this->hasMany(Market::class, 'city_market_id', 'id');
+    }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ACCESSORS
-    |--------------------------------------------------------------------------
-    */
-
-    /*
-    |--------------------------------------------------------------------------
-    | MUTATORS
-    |--------------------------------------------------------------------------
-    */
+    public function getCityMarketAttribute(): string
+    {
+        return $this->name.' ( '.$this->city->name.' )';
+    }
 }
