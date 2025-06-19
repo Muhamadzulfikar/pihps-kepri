@@ -1,4 +1,4 @@
-@php use App\Enums\CityEnum;use App\Enums\CommodityCategoryEnum;use App\Enums\InflationStatusEnum;use App\Enums\MarketEnum;use App\Enums\MarketTypeEnum;use Carbon\Carbon; @endphp
+@php use App\Enums\CityEnum;use App\Enums\CommodityCategoryEnum;use App\Enums\InflationStatusEnum;use App\Enums\MarketEnum;use App\Enums\MarketTypeEnum;use App\Models\CommodityCategory;use Carbon\Carbon; @endphp
     <!doctype html>
 <html lang="en">
 <head>
@@ -204,9 +204,9 @@
         <!-- Mobile toggle and other controls -->
         <div class="navbar-nav flex-row order-md-last">
             <!-- User Avatar -->
-             <div class="nav-item me-3">
-                 <a href="/admin" class="btn btn-dark py-1 px-4">Login</a>
-             </div>
+            <div class="nav-item me-3">
+                <a href="/admin" class="btn btn-dark py-1 px-4">Login</a>
+            </div>
 
             <!-- Mobile menu button -->
             <div class="d-md-none">
@@ -219,8 +219,19 @@
         <!-- Navigation Menu -->
         <div class="collapse navbar-collapse" id="navbar-menu">
             <div class="d-flex flex-column flex-md-row flex-fill align-items-stretch align-items-md-center">
-                <ul class="navbar-nav mx-md-auto"> <!-- mx-md-auto akan membuat menu ini berada di tengah untuk md ke atas -->
-
+                <ul class="navbar-nav mx-md-auto">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link d-flex align-items-center">
+                            <i class="ti ti-home me-2"></i>
+                            <span class="text-uppercase fw-semibold">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/table.php" class="nav-link d-flex align-items-center">
+                            <i class="ti ti-table me-2"></i>
+                            <span class="text-uppercase fw-semibold">Table Harga</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -234,7 +245,7 @@
         <form method="GET" action="{{ url('/') }}" class="col-2 mb-3">
             <select name="category" id="category" class="form-select" onchange="this.form.submit()">
                 <option value="">Kategori Komoditas</option>
-                @foreach (\App\Models\CommodityCategory::select('name')->get() as $commodityCategory)
+                @foreach (CommodityCategory::select('name')->get() as $commodityCategory)
                     <option value="{{ $commodityCategory->name }}"
                         {{ request('category') === $commodityCategory->name ? 'selected' : '' }}>
                         {{ $commodityCategory->name }}
