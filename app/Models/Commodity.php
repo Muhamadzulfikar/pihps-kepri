@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\CommodityCategoryEnum;
-use App\Enums\CommodityEnum;
 use App\Enums\MarketTypeEnum;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -25,8 +23,6 @@ class Commodity extends Model
         'market_type',
     ];
     protected $casts = [
-      'name' => CommodityEnum::class,
-      'category' => CommodityCategoryEnum::class,
       'market_type' => MarketTypeEnum::class,
     ];
 
@@ -38,16 +34,6 @@ class Commodity extends Model
     public function inflationHistories(): HasMany
     {
         return $this->hasMany(InflationHistory::class, 'commodity_uuid', 'uuid');
-    }
-
-    public function getNameTextAttribute(): string
-    {
-        return $this->name->readableText();
-    }
-
-    public function getCategoryTextAttribute(): string
-    {
-        return $this->category->readableText();
     }
 
      public function getMarketTextAttribute(): string

@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\CommodityCategoryEnum;
 use App\Enums\CommodityEnum;
 use App\Enums\MarketTypeEnum;
+use App\Models\CommodityCategory;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CommodityRequest extends FormRequest
@@ -28,8 +29,8 @@ class CommodityRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|in:'.implode(',', CommodityEnum::toValues()),
-            'category' => 'required|string|in:'.implode(',', CommodityCategoryEnum::toValues()),
+            'name' => 'required|string',
+            'category' => 'required|string|in:'.implode(',', CommodityCategory::select('name')->pluck('name')->all()),
             'market_type' => 'required|string|in:'.implode(',', MarketTypeEnum::toValues())
         ];
     }

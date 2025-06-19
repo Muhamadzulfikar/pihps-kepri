@@ -6,6 +6,7 @@ use App\Enums\CommodityCategoryEnum;
 use App\Enums\CommodityEnum;
 use App\Http\Requests\CommodityRequest;
 use App\Models\Commodity;
+use App\Models\CommodityCategory;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
@@ -42,12 +43,12 @@ class CommodityCrudController extends CrudController
         $this->crud->addColumns([
             [
                 'label' => 'Nama',
-                'name' => 'name_text',
+                'name' => 'name',
                 'type' => 'text',
             ],
             [
                 'label' => 'Kategori',
-                'name' => 'category_text',
+                'name' => 'category',
                 'type' => 'text',
             ],
             [
@@ -65,14 +66,13 @@ class CommodityCrudController extends CrudController
             [
                 'label' => 'Nama',
                 'name' => 'name',
-                'type' => 'enum',
-                'options' => CommodityEnum::toArrayWithReadableText(),
+                'type' => 'text',
             ],
             [
                 'label' => 'Kategori',
                 'name' => 'category',
-                'type' => 'enum',
-                'options' => CommodityCategoryEnum::toArrayWithReadableText(),
+                'type' => 'select_from_array',
+                'options' => CommodityCategory::select('name')->pluck('name', 'name')->toArray(),
             ],
             [
                 'label' => 'Jenis Pasar',
