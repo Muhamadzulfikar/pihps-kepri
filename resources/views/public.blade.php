@@ -234,10 +234,10 @@
         <form method="GET" action="{{ url('/') }}" class="col-2 mb-3">
             <select name="category" id="category" class="form-select" onchange="this.form.submit()">
                 <option value="">Kategori Komoditas</option>
-                @foreach (CommodityCategoryEnum::cases() as $commodityCategoryEnum)
-                    <option value="{{ $commodityCategoryEnum->value }}"
-                        {{ request('category') === $commodityCategoryEnum->value ? 'selected' : '' }}>
-                        {{ $commodityCategoryEnum->readableText() }}
+                @foreach (\App\Models\CommodityCategory::select('name')->get() as $commodityCategory)
+                    <option value="{{ $commodityCategory->name }}"
+                        {{ request('category') === $commodityCategory->name ? 'selected' : '' }}>
+                        {{ $commodityCategory->name }}
                     </option>
                 @endforeach
             </select>
@@ -251,25 +251,19 @@
                     <img
                         src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-JJp7rr3QvwocUl4EAAOhYrhXobXcDz.png"
                         alt="Peta Kepulauan Riau" class="map-image">
-                    <!-- City Hotspots -->
-                    @foreach(CityEnum::cases() as $city)
-                        @php $avg = $markets?->where('city', $city)->avg('price') @endphp
-                        <div class="city-hotspot {{$city->coordinate()}}"
-                             title="{{$city->readableText()}} - Rp {{ number_format($avg ?? 0, 0, ',', '.')}}/kg"></div>
-                    @endforeach
                 </div>
             </div>
 
             <div class="city-list">
                 <div class="city-list-header">
                     <span>KOTA</span>
-                    <span>HARGA <br>{{CommodityCategoryEnum::search($category)?->readableText() ?? ''}}</span>
+                    <span>HARGA <br>{{$category ?? ''}}</span>
                 </div>
                 <div class="city-list-content">
-                    @foreach(CityEnum::cases() as $city)
-                        @php $avg = $markets?->where('city', $city)->avg('price') @endphp
+                    @foreach($cities as $city)
+                        @php $avg = $markets?->whereIn('city_market_id', $cityMarkets->where('city_id', $city->id)->pluck('id')->all())->avg('price') @endphp
                         <div class="city-item">
-                            <span>{{$city->readableText()}}</span>
+                            <span>{{$city->name}}</span>
                             <span>Rp. {{number_format($avg ?? 0, 0, ',', '.')}}</span>
                         </div>
                     @endforeach
@@ -313,7 +307,7 @@
 
                     <p class="text-center p-1 m-0 fw-bold"
                        style="background-color: #2c3e50;">
-                        {{ $commodity->name->readableText() }}
+                        {{ $commodity->name }}
                     </p>
 
                     @php $inflationHistory = $commodity->inflationHistories->sortByDesc('start_date')->first(); @endphp
@@ -355,7 +349,7 @@
                     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">{{$commodity->name->readableText()}}</h5>
+                                <h5 class="modal-title">{{$commodity->name}}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
                             </div>
@@ -376,30 +370,29 @@
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        @foreach (CityEnum::cases() as $city)
+                                        @foreach ($cities as $city)
                                             <tr>
-                                                <td>{{ $city->readableText() }}</td>
+                                                <td>{{ $city->name }}</td>
                                                 @foreach ($dates as $date)
                                                     @php
                                                         $price = $markets
                                                             ->where('start_date', $date)
-                                                            ->where('city', $city)
+                                                            ->whereIn('city_market_id', $cityMarkets->where('city_id', $city->id)->pluck('id')->all())
                                                             ->avg('price') ?? 0;
                                                     @endphp
                                                     <td>Rp. {{ number_format($price, 0, ',', '.') }}</td>
                                                 @endforeach
                                             </tr>
 
-                                            @foreach (MarketEnum::cases() as $marketEnum)
-                                                @if ($marketEnum->type() === $city)
+                                            @foreach ($cityMarkets as $cityMarket)
+                                                @if ($cityMarket->city_id === $city->id)
                                                     <tr>
-                                                        <td class="ps-4">{{ $marketEnum->readableText() }}</td>
+                                                        <td class="ps-4">{{ $cityMarket->name }}</td>
                                                         @foreach ($dates as $date)
                                                             @php
                                                                 $price = $markets
                                                                     ->where('start_date', $date)
-                                                                    ->where('city', $city)
-                                                                    ->where('name', $marketEnum->value)
+                                                                    ->where('city_market_id', $cityMarket->id)
                                                                     ->first()?->price ?? 0;
                                                             @endphp
                                                             <td>Rp. {{ number_format($price, 0, ',', '.') }}</td>

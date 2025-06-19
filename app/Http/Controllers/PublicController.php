@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\MarketTypeEnum;
+use App\Models\City;
+use App\Models\CityMarket;
 use App\Models\Commodity;
 use App\Models\Market;
 use Illuminate\View\View;
@@ -30,14 +32,18 @@ class PublicController extends Controller
             ->where('market_type', $marketType)
             ->get();
 
-        $markets = $commodities->where('category', $category)
-            ->first()
-            ?->markets
-            ->where('start_date', $fiveLatestDates->last());
+        $markets = Market::whereHas('commodity', fn($query) => $query->where('category', $category))
+            ->where('start_date', $fiveLatestDates->last())->get();
+
+        $cityMarkets = CityMarket::select(['id', 'city_id', 'name'])->get();
+
+        $cities = City::select('id', 'name')->get();
 
         return view('public', [
             'commodities' => $commodities,
+            'cities' => $cities,
             'markets' => $markets,
+            'cityMarkets'  => $cityMarkets,
             'category' => $category,
         ]);
     }
