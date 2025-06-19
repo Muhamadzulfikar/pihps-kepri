@@ -14,12 +14,12 @@ class CommoditySeeder extends Seeder
         foreach (MarketTypeEnum::cases() as $marketTypeEnum) {
             foreach (CommodityEnum::cases() as $commodityEnum) {
                 Commodity::updateOrCreate([
-                    'name' => $commodityEnum->value,
-                    'category' => $commodityEnum->type()->value,
+                    'name' => $commodityEnum->readableText(),
+                    'category' => $commodityEnum->type()->readableText(),
                     'market_type' => $marketTypeEnum->value,
                 ], [
-                    'name' => $commodityEnum->value,
-                    'category' => $commodityEnum->type()->value,
+                    'name' => $commodityEnum->readableText(),
+                    'category' => $commodityEnum->type()->readableText(),
                     'market_type' => $marketTypeEnum->value,
                 ]);
             }
